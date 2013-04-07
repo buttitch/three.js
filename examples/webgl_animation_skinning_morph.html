@@ -209,12 +209,12 @@
 					];
 
 
-				//var envMap = THREE.ImageUtils.loadTextureCube( urls );
+				var envMap = THREE.ImageUtils.loadTextureCube( urls );
 
-				//var map = THREE.ImageUtils.loadTexture( "textures/ash_uvgrid01.jpg" );
+				var map = THREE.ImageUtils.loadTexture( "textures/ash_uvgrid01.jpg" );
 
-				//var bumpMap = THREE.ImageUtils.generateDataTexture( 1, 1, new THREE.Color() );
-				//var bumpMap = THREE.ImageUtils.loadTexture( "textures/water.jpg" );
+				var bumpMap = THREE.ImageUtils.generateDataTexture( 1, 1, new THREE.Color() );
+				var bumpMap = THREE.ImageUtils.loadTexture( "textures/water.jpg" );
 
 				for ( var i = 0; i < materials.length; i ++ ) {
 
@@ -227,13 +227,13 @@
 					m.color.setHSL( 0.6, 0, 0.6 );
 					m.ambient.copy( m.color );
 
-					//m.map = map;
-					//m.envMap = envMap;
-					//m.bumpMap = bumpMap;
-					//m.bumpScale = 2;
+					m.map = map;
+					m.envMap = envMap;
+					m.bumpMap = bumpMap;
+					m.bumpScale = 2;
 
-					//m.combine = THREE.MixOperation;
-					//m.reflectivity = 0.75;
+					m.combine = THREE.MixOperation;
+					m.reflectivity = 0.75;
 
 					m.wrapAround = true;
 
