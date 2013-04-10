@@ -3804,6 +3804,14 @@ THREE.Matrix4.prototype = {
 
 	setRotationFromEuler: function ( v, order ) {
 
+		console.warn( 'DEPRECATED: Matrix4\'s .setRotationFromEuler() has been deprecated in favor of makeRotationFromEuler.  Please update your code.' );
+
+		return this.makeRotationFromEuler( v, order );
+
+	},
+
+	makeRotationFromEuler: function ( v, order ) {
+
 		var te = this.elements;
 
 		var x = v.x, y = v.y, z = v.z;
@@ -3909,11 +3917,30 @@ THREE.Matrix4.prototype = {
 
 		}
 
+		// last column
+		te[3] = 0;
+		te[7] = 0;
+		te[11] = 0;
+
+		// bottom row
+		te[12] = 0;
+		te[13] = 0;
+		te[14] = 0;
+		te[15] = 1;
+
 		return this;
 
 	},
 
 	setRotationFromQuaternion: function ( q ) {
+
+		console.warn( 'DEPRECATED: Matrix4\'s .setRotationFromQuaternion() has been deprecated in favor of makeRotationFromQuaternion.  Please update your code.' );
+
+		return this.makeRotationFromQuaternion( q );
+
+	},
+
+	makeRotationFromQuaternion: function ( q ) {
 
 		var te = this.elements;
 
@@ -3934,6 +3961,17 @@ THREE.Matrix4.prototype = {
 		te[2] = xz - wy;
 		te[6] = yz + wx;
 		te[10] = 1 - ( xx + yy );
+
+		// last column
+		te[3] = 0;
+		te[7] = 0;
+		te[11] = 0;
+
+		// bottom row
+		te[12] = 0;
+		te[13] = 0;
+		te[14] = 0;
+		te[15] = 1;
 
 		return this;
 
@@ -4463,6 +4501,34 @@ THREE.Matrix4.prototype = {
 
 	},
 
+	compose: function ( position, quaternion, scale ) {
+
+		console.warn( 'DEPRECATED: Matrix4\'s .compose() has been deprecated in favor of makeFromPositionQuaternionScale. Please update your code.' );
+
+		return this.makeFromPositionQuaternionScale( position, quaternion, scale );
+
+	},
+
+	makeFromPositionQuaternionScale: function ( position, quaternion, scale ) {
+
+		this.makeRotationFromQuaternion( quaternion );
+		this.scale( scale );
+		this.setPosition( position );
+
+		return this;
+
+	},
+
+	makeFromPositionEulerScale: function ( position, rotation, eulerOrder, scale ) {
+
+		this.makeRotationFromEuler( rotation, eulerOrder );
+		this.scale( scale );
+		this.setPosition( position );
+
+		return this;
+
+	},
+
 	makeFrustum: function ( left, right, bottom, top, near, far ) {
 
 		var te = this.elements;
@@ -4532,32 +4598,6 @@ THREE.Matrix4.prototype = {
 };
 
 THREE.extend( THREE.Matrix4.prototype, {
-
-	compose: function() {
-
-		var mRotation = new THREE.Matrix4();
-		var mScale = new THREE.Matrix4();
-
-		return function ( position, quaternion, scale ) {
-
-			var te = this.elements;
-
-			mRotation.identity();
-			mRotation.setRotationFromQuaternion( quaternion );
-
-			mScale.makeScale( scale.x, scale.y, scale.z );
-
-			this.multiplyMatrices( mRotation, mScale );
-
-			te[12] = position.x;
-			te[13] = position.y;
-			te[14] = position.z;
-
-			return this;
-
-		};
-
-	}(),
 
 	decompose: function() {
 
@@ -6579,21 +6619,15 @@ THREE.Object3D.prototype = {
 
 	updateMatrix: function () {
 
-		this.matrix.setPosition( this.position );
+		// if we are not using a quaternion directly, convert Euler rotation to this.quaternion.
 
 		if ( this.useQuaternion === false )  {
 
-			this.matrix.setRotationFromEuler( this.rotation, this.eulerOrder );
+			this.matrix.makeFromPositionEulerScale( this.position, this.rotation, this.eulerOrder, this.scale );
 
 		} else {
 
-			this.matrix.setRotationFromQuaternion( this.quaternion );
-
-		}
-
-		if ( this.scale.x !== 1 || this.scale.y !== 1 || this.scale.z !== 1 ) {
-
-			this.matrix.scale( this.scale );
+			this.matrix.makeFromPositionQuaternionScale( this.position, this.quaternion, this.scale );
 
 		}
 
@@ -9208,7 +9242,7 @@ THREE.SpotLight = function ( hex, intensity, distance, angle, exponent ) {
 
 	this.intensity = ( intensity !== undefined ) ? intensity : 1;
 	this.distance = ( distance !== undefined ) ? distance : 0;
-	this.angle = ( angle !== undefined ) ? angle : Math.PI / 2;
+	this.angle = ( angle !== undefined ) ? angle : Math.PI / 3;
 	this.exponent = ( exponent !== undefined ) ? exponent : 10;
 
 	this.castShadow = false;
@@ -9823,7 +9857,11 @@ THREE.JSONLoader.prototype.loadAjaxJSON = function ( context, url, callback, tex
 
 		} else if ( xhr.readyState === xhr.HEADERS_RECEIVED ) {
 
-			length = xhr.getResponseHeader( "Content-Length" );
+			if ( callbackProgress !== undefined ) {
+
+				length = xhr.getResponseHeader( "Content-Length" );
+
+			}
 
 		}
 
@@ -9919,7 +9957,7 @@ THREE.JSONLoader.prototype.parse = function ( json, texturePath ) {
 			type = faces[ offset ++ ];
 
 
-			isQuad          	= isBitSet( type, 0 );
+			isQuad              = isBitSet( type, 0 );
 			hasMaterial         = isBitSet( type, 1 );
 			hasFaceUv           = isBitSet( type, 2 );
 			hasFaceVertexUv     = isBitSet( type, 3 );
@@ -13681,16 +13719,9 @@ THREE.Sprite.prototype = Object.create( THREE.Object3D.prototype );
 
 THREE.Sprite.prototype.updateMatrix = function () {
 
-	this.matrix.setPosition( this.position );
-
 	this.rotation3d.set( 0, 0, this.rotation );
-	this.matrix.setRotationFromEuler( this.rotation3d );
-
-	if ( this.scale.x !== 1 || this.scale.y !== 1 ) {
-
-		this.matrix.scale( this.scale );
-
-	}
+	this.quaterion.setFromEuler( this.rotation3d, this.eulerOrder );
+	this.matrix.makeFromPositionQuaternionScale( this.position, this.quaternion, this.scale );
 
 	this.matrixWorldNeedsUpdate = true;
 
@@ -14108,11 +14139,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 		}
 
-		if ( this.autoClear === true ) {
-
-			this.clear();
-
-		}
+		if ( this.autoClear === true ) this.clear();
 
 		_context.setTransform( 1, 0, 0, - 1, _canvasWidthHalf, _canvasHeightHalf );
 
@@ -14154,7 +14181,10 @@ THREE.CanvasRenderer = function ( parameters ) {
 				_v1.positionScreen.x *= _canvasWidthHalf; _v1.positionScreen.y *= _canvasHeightHalf;
 				_v2.positionScreen.x *= _canvasWidthHalf; _v2.positionScreen.y *= _canvasHeightHalf;
 
-				_elemBox.setFromPoints( [ _v1.positionScreen, _v2.positionScreen ] );
+				_elemBox.setFromPoints( [
+					_v1.positionScreen,
+					_v2.positionScreen
+				] );
 
 				if ( _clipBox.isIntersectionBox( _elemBox ) === true ) {
 
@@ -14182,9 +14212,17 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 				}
 
-				_elemBox.setFromPoints( [ _v1.positionScreen, _v2.positionScreen, _v3.positionScreen ] );
+				_elemBox.setFromPoints( [
+					_v1.positionScreen,
+					_v2.positionScreen,
+					_v3.positionScreen
+				] );
 
-				renderFace3( _v1, _v2, _v3, 0, 1, 2, element, material );
+				if ( _clipBox.isIntersectionBox( _elemBox ) === true ) {
+
+					renderFace3( _v1, _v2, _v3, 0, 1, 2, element, material );
+
+				}
 
 			} else if ( element instanceof THREE.RenderableFace4 ) {
 
@@ -14214,9 +14252,18 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 				}
 
-				_elemBox.setFromPoints( [ _v1.positionScreen, _v2.positionScreen, _v3.positionScreen, _v4.positionScreen ] );
+				_elemBox.setFromPoints( [
+					_v1.positionScreen,
+					_v2.positionScreen,
+					_v3.positionScreen,
+					_v4.positionScreen
+				] );
 
-				renderFace4( _v1, _v2, _v3, _v4, _v5, _v6, element, material, scene );
+				if ( _clipBox.isIntersectionBox( _elemBox ) === true ) {
+
+					renderFace4( _v1, _v2, _v3, _v4, _v5, _v6, element, material );
+
+				}
 
 			}
 
@@ -14340,6 +14387,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 					if ( _clipBox.isIntersectionBox( _elemBox ) === false ) {
 
+						_elemBox.makeEmpty();
 						return;
 
 					}
@@ -14372,6 +14420,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 					if ( _clipBox.isIntersectionBox( _elemBox ) === false ) {
 
+						_elemBox.makeEmpty();
 						return;
 
 					}
@@ -14407,6 +14456,7 @@ THREE.CanvasRenderer = function ( parameters ) {
 
 				if ( _clipBox.isIntersectionBox( _elemBox ) === false ) {
 
+					_elemBox.makeEmpty();
 					return;
 
 				}
@@ -28606,7 +28656,7 @@ THREE.Gyroscope.prototype.updateMatrixWorld = function ( force ) {
 			this.matrixWorld.decompose( this.translationWorld, this.rotationWorld, this.scaleWorld );
 			this.matrix.decompose( this.translationObject, this.rotationObject, this.scaleObject );
 
-			this.matrixWorld.compose( this.translationWorld, this.rotationObject, this.scaleWorld );
+			this.matrixWorld.makeFromPositionQuaternionScale( this.translationWorld, this.rotationObject, this.scaleWorld );
 
 
 		} else {
@@ -31135,11 +31185,11 @@ THREE.CircleGeometry = function ( radius, segments, thetaStart, thetaLength ) {
 		vertex.y = radius * Math.sin( segment );
 
 		this.vertices.push( vertex );
-		uvs.push( new THREE.Vector2( ( vertex.x / radius + 1 ) / 2, - ( vertex.y / radius + 1 ) / 2 + 1 ) );
+		uvs.push( new THREE.Vector2( ( vertex.x / radius + 1 ) / 2, ( vertex.y / radius + 1 ) / 2 ) );
 
 	}
 
-	var n = new THREE.Vector3( 0, 0, -1 );
+	var n = new THREE.Vector3( 0, 0, 1 );
 
 	for ( i = 1; i <= segments; i ++ ) {
 
@@ -34229,6 +34279,8 @@ THREE.PointLightHelper = function ( light, sphereSize ) {
 
 	THREE.Object3D.call( this );
 
+	this.matrixAutoUpdate = false;
+
 	this.light = light;
 
 	var geometry = new THREE.SphereGeometry( sphereSize, 4, 2 );
@@ -34292,7 +34344,8 @@ THREE.PointLightHelper.prototype.update = function () {
 /**
  * @author alteredq / http://alteredqualia.com/
  * @author mrdoob / http://mrdoob.com/
- */
+ * @author WestLangley / http://github.com/WestLangley
+*/
 
 THREE.SpotLightHelper = function ( light, sphereSize ) {
 
@@ -34322,7 +34375,7 @@ THREE.SpotLightHelper = function ( light, sphereSize ) {
 	this.lightCone.position = this.light.position;
 
 	var coneLength = light.distance ? light.distance : 10000;
-	var coneWidth = coneLength * Math.tan( light.angle * 0.5 ) * 2;
+	var coneWidth = coneLength * Math.tan( light.angle );
 
 	this.lightCone.scale.set( coneWidth, coneWidth, coneLength );
 	this.lightCone.lookAt( this.light.target.position );
@@ -34336,7 +34389,7 @@ THREE.SpotLightHelper.prototype = Object.create( THREE.Object3D.prototype );
 THREE.SpotLightHelper.prototype.update = function () {
 
 	var coneLength = this.light.distance ? this.light.distance : 10000;
-	var coneWidth = coneLength * Math.tan( this.light.angle * 0.5 ) * 2;
+	var coneWidth = coneLength * Math.tan( this.light.angle );
 
 	this.lightCone.scale.set( coneWidth, coneWidth, coneLength );
 	this.lightCone.lookAt( this.light.target.position );

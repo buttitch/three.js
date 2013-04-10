@@ -140,7 +140,7 @@ Sidebar.Object3D = function ( signals ) {
 	// angle
 
 	var objectAngleRow = new UI.Panel();
-	var objectAngle = new UI.Number().setPrecision( 3 ).setRange( 0, Math.PI * 2 ).onChange( update );
+	var objectAngle = new UI.Number().setPrecision( 3 ).setRange( 0, Math.PI / 2 ).onChange( update );
 
 	objectAngleRow.add( new UI.Text( 'Angle' ).setWidth( '90px' ).setColor( '#666' ) );
 	objectAngleRow.add( objectAngle );
@@ -265,6 +265,8 @@ Sidebar.Object3D = function ( signals ) {
 
 					parent.add( selected );
 
+					signals.sceneChanged.dispatch( scene );
+
 				}
 
 			}
@@ -292,6 +294,7 @@ Sidebar.Object3D = function ( signals ) {
 			if ( selected.fov !== undefined ) {
 
 				selected.fov = objectFov.getValue();
+				selected.updateProjectionMatrix();
 
 			}
 
@@ -452,15 +455,23 @@ Sidebar.Object3D = function ( signals ) {
 
 	} );
 
-	signals.objectSelected.add( updateUI );
-	signals.objectChanged.add( updateUI );
-	signals.cameraChanged.add( updateUI );
+	signals.objectSelected.add( function ( object ) {
 
-	function updateUI( object ) {
+		selected = object;
+		updateUI();
+
+	} );
+	signals.objectChanged.add( function ( object ) {
+
+		if ( selected === object ) updateUI();
+
+	} );
+
+	function updateUI() {
 
 		container.setDisplay( 'block' );
 
-		selected = object
+		var object = selected;
 
 		objectType.setValue( getObjectInstanceName( object ) );
 

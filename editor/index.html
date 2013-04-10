@@ -56,6 +56,7 @@
 
 			.toolbar {
 				background-color: #999;
+				color: #333;
 			}
 
 			.sidebar {
@@ -73,7 +74,9 @@
 	<body>
 
 		<script src="../build/three.js"></script>
-		<script src="../examples/js/controls/TrackballControls.js"></script>
+		<script src="../examples/js/libs/system.min.js"></script>
+
+		<script src="../examples/js/controls/EditorControls.js"></script>
 		<script src="../examples/js/loaders/BinaryLoader.js"></script>
 		<script src="../examples/js/loaders/ColladaLoader.js"></script>
 		<script src="../examples/js/loaders/OBJLoader.js"></script>
@@ -139,6 +142,7 @@
 				// notifications
 
 				modifierAxisChanged: new SIGNALS.Signal(),
+				snapChanged: new SIGNALS.Signal(),
 				rendererChanged: new SIGNALS.Signal(),
 				sceneChanged: new SIGNALS.Signal(),
 				objectAdded: new SIGNALS.Signal(),
@@ -146,7 +150,6 @@
 				objectChanged: new SIGNALS.Signal(),
 				materialChanged: new SIGNALS.Signal(),
 				clearColorChanged: new SIGNALS.Signal(),
-				cameraChanged: new SIGNALS.Signal(),
 				fogTypeChanged: new SIGNALS.Signal(),
 				fogColorChanged: new SIGNALS.Signal(),
 				fogParametersChanged: new SIGNALS.Signal(),

@@ -8,6 +8,8 @@ var Toolbar = function ( signals ) {
 	buttons.setPadding( '7px' );
 	container.add( buttons );
 
+	// axis
+
 	var x = new UI.Checkbox( true ).onChange( update );
 	buttons.add( x );
 	buttons.add( new UI.Text( 'x' ) );
@@ -20,6 +22,19 @@ var Toolbar = function ( signals ) {
 	buttons.add( z );
 	buttons.add( new UI.Text( 'z ' ) );
 
+	buttons.add( new UI.Text().setWidth( '25px' ) );
+
+	// grid
+
+	var grid = new UI.Number( 25 ).onChange( update );
+	grid.dom.style.width = '42px';
+	buttons.add( new UI.Text( 'Grid: ' ) );
+	buttons.add( grid );
+
+	var snap = new UI.Checkbox( false ).onChange( update );
+	buttons.add( snap );
+	buttons.add( new UI.Text( 'snap' ) );
+
 	function update() {
 
 		var axis = new THREE.Vector3();
@@ -29,7 +44,11 @@ var Toolbar = function ( signals ) {
 
 		signals.modifierAxisChanged.dispatch( axis );
 
+		signals.snapChanged.dispatch( snap.getValue() === true ? grid.getValue() : null );
+
 	}
+
+	update();
 
 	return container;
 

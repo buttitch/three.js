@@ -98,6 +98,11 @@ THREE.SoftwareRenderer = function () {
 
 	this.clear = function () {
 
+		rectx1 = Infinity;
+		recty1 = Infinity;
+		rectx2 = 0;
+		recty2 = 0;
+
 		for ( var i = 0; i < numBlocks; i ++ ) {
 
 			blockMaxZ[ i ] = maxZVal;
@@ -109,12 +114,7 @@ THREE.SoftwareRenderer = function () {
 
 	this.render = function ( scene, camera ) {
 
-		rectx1 = Infinity;
-		recty1 = Infinity;
-		rectx2 = 0;
-		recty2 = 0;
-
-		if ( this.autoClear ) this.clear();
+		if ( this.autoClear === true ) this.clear();
 
 		var renderData = projector.projectScene( scene, camera );
 		var elements = renderData.elements;
